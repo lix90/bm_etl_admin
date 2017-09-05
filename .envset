@@ -1,0 +1,107 @@
+### schedule env set
+export WORKPATH="/home/db2inst1"
+export TMPPATH="/tmp"
+export ETLHOME="${WORKPATH}/shell"
+
+export BUFFERSIZE=3000
+export ARRAYSIZE=5000
+export TRANSACTIONSIZE=10000
+export PREFETCHSIZE=5000
+export DBPWD="db2inst1"
+
+### DataStage param
+export DSSERVER="192.168.1.180"
+export DSPROJECT="citicpru" 
+export DSUSER="Administrator"
+export DSPASSWORD="bmstsvr"
+
+### db2 DW
+export DWSVR="DW"
+export DWUSR="db2inst1"
+export DWPWD=${DBPWD}
+export DWSCHEMA="DBO"
+
+### db2 ODS
+export ODSSVR="ODS"
+export ODSUSR="db2inst1"
+export ODSPWD="${DBPWD}"
+export ODSSCHEMA="DBO"
+
+### db2 SPEED
+export SPEEDSVR="SPEED"
+export SPEEDUSR="db2inst1"
+export SPEEDPWD="${DBPWD}"
+export SPEEDSCHEMA="DBO"
+
+### db2 SPEEDIN
+export SPEEDINSVR="SPEEDIN"
+export SPEEDINUSR="db2inst1"
+export SPEEDINPWD="${DBPWD}"
+export SPEEDINSCHEMA="DBO"
+###db2 IDS3
+export IDS3SVR="IDS3"
+export IDS3USR="db2inst1"
+export IDS3PWD="${DBPWD}"
+export IDS3SCHEMA="DBO"
+###db2 IPS3
+export IPS3SVR="IPS3"
+export IPS3USR="db2inst1"
+export IPS3PWD="${DBPWD}"
+export IPS3SCHEMA="DBO"
+###db2 IDS3IN
+export IDS3INSVR="IDS3IN"
+export IDS3INUSR="db2inst1"
+export IDS3INPWD="${DBPWD}"
+export IDS3INSCHEMA="DBO"
+###db2 IPS3IN
+export IPS3INSVR="IPS3IN"
+export IPS3INUSR="db2inst1"
+export IPS3INPWD="${DBPWD}"
+export IPS3INSCHEMA="DBO"
+###source system param
+###AS/400
+export AS400SVR="db400"
+export AS400USR="BODWNUSRT"
+export AS400PWD="USRTDWNBO"
+export AS400SCHEMA="ETLMOTLIB"
+export AS400SCHEMA2="PBSEC6D"
+###CITICPROD
+export CITICPRODSVR="citicuat"
+export CITICPRODUSR="gsbo"
+export CITICPRODPWD="gsbo123"
+export CITICPRODSCHEMA="gsbo"
+###SERVER6
+export SERVER6SVR="gzsqtsvr7_t_downfile"
+export SERVER6USR="sdpuser"
+export SERVER6PWD="123456789"
+export SERVER6SCHEMA="DBO"
+###CITICRM server param
+export CITICRMSSVR="gzsqtsvr7_t_downfile"
+export CITICRMSUSR="sdpuser"
+export CITICRMSPWD="123456789"
+export CITICRMSSCHEMA="DBO"
+###MIGRATION SOURCE param
+export MIGSVR="gzsqtsvr7_t_downfile"
+export MIGUSR="sdpuser"
+export MIGPWD="123456789"
+export MIGSCHEMA="DBO"
+###AUTOPAY SOURCE param
+export AUTOPAYSVR="gzsqtsvr7_t_downfile"
+export AUTOPAYUSR="sdpuser"
+export AUTOPAYPWD="123456789"
+export AUTOPAYSCHEMA="DBO"
+###call center param
+export CCSVR="gzsqtsvr7_t_downfile"
+export CCUSR="sdpuser"
+export CCPWD="123456789"
+export CCSCHEMA="dbo"
+###call center bak param
+export CCBAKSVR="gzsqtsvr7_t_downfile"
+export CCBAKUSR="sdpuser"
+export CCBAKPWD="123456789"
+export CCBAKSCHEMA="dbo"
+###boudb3 param
+export BODWSVR="DW"
+export BODWUSR="db2inst1"
+export BODWPWD="${DBPWD}"
+export BODWSCHEMA="DBO"
