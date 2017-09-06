@@ -71,7 +71,9 @@ elif [ "$etltype" == "12" ]; then
 fi 
 export jobpath=$ETLHOME/shell/job${ddflag}
 host=`hostname`
+
 echo "lock">$ETLHOME/etllog/loglock.lck
+
 datectlfile=$ETLHOME/shell/config/etl_datectl_param
 jobschfile=$ETLHOME/shell/config/etl_job
 binfiledirectory=`cat /.dshome`/bin
@@ -117,7 +119,8 @@ getlock(){
          locktime=`expr $locktime + 1`
          if [ $locktime = $locktimeout ]; then
             lsdate22=`date +%Y%m%d_%H%M%S`
-            echo "$lsdate22:作业序列${curjob}－作业$jobunit申请写日志锁超时，调度程序出现严重错误.">>$ETLHOME/etllog/${batchno}/joblst.run
+            echo "$lsdate22:作业序列${curjob}－作业$jobunit申请写日志锁超时，调度程序出现严重错误."\
+                 >>$ETLHOME/etllog/${batchno}/joblst.run
             exit 4000
          fi
       else
@@ -131,7 +134,8 @@ releaselock(){
   mv $ETLHOME/etllog/loglock.lck${procid} $ETLHOME/etllog/loglock.lck 2>/dev/null
   if [ ! $? -eq 0 ]; then
      lsdate22=`date +%Y%m%d_%H%M%S`
-     echo "$lsdate22:作业序列${curjob}－作业$jobunit释放写日志锁超时，调度程序出现严重错误.">>$ETLHOME/etllog/${batchno}/joblst.run
+     echo "$lsdate22:作业序列${curjob}－作业$jobunit释放写日志锁超时，调度程序出现严重错误."\
+          >>$ETLHOME/etllog/${batchno}/joblst.run
      exit 4001
   else
      break  
@@ -141,50 +145,66 @@ releaselock(){
 
 ###检查JOB状态
 checkjobstatus1(){
-     logfilename="${logfile}_jobstatus"
-     ${binfiledirectory}/dsjob -server ${DSSERVER} -user ${DSUSER} -password ${DSPASSWORD} -jobinfo ${DSPROJECT} ${jobunit} >> ${logfilename} 
+
+    logfilename="${logfile}_jobstatus"
+    ${binfiledirectory}/dsjob \
+                       -server ${DSSERVER} \
+                       -user ${DSUSER} \
+                       -password ${DSPASSWORD} \
+                       -jobinfo ${DSPROJECT} ${jobunit} \
+                       >> ${logfilename} 
     
-   
-     error=`grep "Job Status" ${logfilename}` 
-     error=${error##*\(} 
-     error=${error%%\)*} 
-     
-     if [ "${error}" = "1" ]; then
+    
+    error=`grep "Job Status" ${logfilename}` 
+    error=${error##*\(} 
+    error=${error%%\)*} 
+    
+    if [ "${error}" = "1" ]; then
         jobstatus=0
-     else
+    else
         jobstatus=${error}
-     fi
+    fi
 }
 
 ###检查执行JOB的状态
 checkjobstatus2(){
-     jobwaiting=`grep "Waiting for job..." $1` 
-     endtime=`date +%Y%m%d_%H%M%S`
-     if [ "${jobwaiting}" != "Waiting for job..." ]; then
+
+    jobwaiting=`grep "Waiting for job..." $1` 
+    endtime=`date +%Y%m%d_%H%M%S`
+    if [ "${jobwaiting}" != "Waiting for job..." ]; then
         jobstatus=-1 
-     else
+    else
         jobstatus=1 
-     fi
-     
-     ${binfiledirectory}/dsjob -server ${DSSERVER} -user ${DSUSER} -password ${DSPASSWORD} -jobinfo ${DSPROJECT} ${jobunit} >> $1 
-     
-     
-     error=`grep "Job Status" $1` 
-     error=${error##*\(} 
-     error=${error%%\)*} 
-     
-     if [ "${jobstatus}" != "1" ]; then
+    fi
+    
+    ${binfiledirectory}/dsjob \
+                       -server ${DSSERVER} \
+                       -user ${DSUSER} \
+                       -password ${DSPASSWORD} \
+                       -jobinfo ${DSPROJECT} ${jobunit} \
+                       >> $1
+    
+    error=`grep "Job Status" $1` 
+    error=${error##*\(} 
+    error=${error%%\)*} 
+    
+    if [ "${jobstatus}" != "1" ]; then
         jobstatus=-1          
-     else
+    else
         if [ "${error}" = "1" -o "${error}" = "2" ]; then
-           jobstatus=0
+            jobstatus=0
         else
-           jobstatus=${error}
+            jobstatus=${error}
         fi
         if [ ! "${error}" = "1" ]; then
-           ${binfiledirectory}/dsjob -server ${DSSERVER} -user ${DSUSER} -password ${DSPASSWORD} -logsum ${DSPROJECT} ${jobunit} >> $1
+            ${binfiledirectory}/dsjob \
+                               -server ${DSSERVER} \
+                               -user ${DSUSER} \
+                               -password ${DSPASSWORD} \
+                               -logsum ${DSPROJECT} ${jobunit} \
+                               >> $1
         fi
-     fi
+    fi
 }
 
 ###此函数作废
