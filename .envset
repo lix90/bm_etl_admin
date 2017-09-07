@@ -3,6 +3,12 @@ export WORKPATH="/home/db2inst1"
 export TMPPATH="/tmp"
 export ETLHOME="${WORKPATH}/shell"
 
+export TASKPATH=""
+export ORCLNAME=""
+export ORCLUSER=""
+export ORCLPWD=""
+
+
 export BUFFERSIZE=3000
 export ARRAYSIZE=5000
 export TRANSACTIONSIZE=10000

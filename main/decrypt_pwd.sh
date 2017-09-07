@@ -7,14 +7,15 @@
 ### ----------------------------------------------------------------------
 
 # 初始化文件
+
 initfile=/home/`whoami`/.profile
 inittmpfile=${initfile}_$$
 if [ ! -f $initfile ]; then
     echo "初始化文件$initfile 不存在."
     exit 1000
 fi
-cat $initfile|awk '(!($0 ~ /admin.sh/)) {print $0}'\
-                  >$inittmpfile
+cat $initfile| `awk '(!($0 ~ /admin.sh/)) {print $0}'`\
+                   >$inittmpfile
 chmod 755 $inittmpfile
 . $inittmpfile
 rm $inittmpfile
