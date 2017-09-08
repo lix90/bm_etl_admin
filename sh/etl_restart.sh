@@ -11,7 +11,7 @@ JOBPATH=$TASKPATH/job
 case $a in
     Y|y)
         # 调度清单, 如果存在, 清除原来的调度清单文件
-        schedule_file=$JOBPATH/schedule$$.lst
+        schedule_file=$JOBPATH/schedule$$
 
         if [ -f $schedule_file ]; then
             rm $schedule_file
@@ -22,11 +22,12 @@ case $a in
         echo "RESTART FROM LAST FAILED TASK OF CURRENT BATCHNO(Y/N):\c"
         read ans
 
+        ## 将重启调度文件名和作业序号写入调度文件
         if [ -z "$ans" -o "$ans" = "Y" -o "$ans" = "y" ]; then
             # 写重启标识到调度文件
-            cat $LOGPATH/restart \
+            cat $LOGPATH/restart.flag \
                 >$schedule_file
-        elif [ "$ans" = "Y" -o "$ans" = "y"]; then
+        elif [ "$ans" = "N" -o "$ans" = "n"]; then
             while :
             do
                 # 输入作业序列名
@@ -47,17 +48,18 @@ case $a in
                     echo "$jobfname,$jobid" \
                          >>$schedule_file
                 else
-                    echo "\nERROR JOB SEQ NAME!"
+                    echo "ERROR JOB SEQ NAME!"
                 fi
             done
         fi
 
+        ## 读取调度文件，获取重新调度的作业序列信息
         if [ -f $schedule_file ]; then
             # 打印调度文件
-            echo "\nCURRENT JOB SEQ LIST FOR SCHEDULING:\n"
+            echo "CURRENT JOB SEQ LIST FOR SCHEDULING:"
             cat $schedule_file
 
-            echo "\nPRESS [ENTER] KEY TO CONTINUE......\c"
+            echo "PRESS [ENTER] KEY TO CONTINUE......"
             read key_enter
 
             # 读取调度文件
@@ -65,8 +67,8 @@ case $a in
                 succjs=""
                 while read line
                 do
-                    jobfname=`echo $line|awk -F ',' '{print $1}'`
-                    jobid=`echo $line|awk -F ',' '{print $2}'`
+                    jobfname=`echo $line | awk -F ',' '{print $1}'`
+                    jobid=`echo $line | awk -F ',' '{print $2}'`
                     if [ -z "$jobfname" ]; then
                         continue
                     fi
@@ -77,16 +79,16 @@ case $a in
                     fi
                 done < $schedule_file
 
-                ## --------------------------------------------------
+                ##--------------------------------------------------
                 ## 启动任务, 断点加载任务
-                ## --------------------------------------------------
+                ##--------------------------------------------------
                 eval ./start_task.sh $succjs 1
 
                 if [ $? -eq 0 ]; then
                     echo "TASK SUBMITTED, PRESS [ENTER] KEY TO CONTINUE......"
                     read key_enter
                 else
-                    echo "TASK FAIL, PRESS [ENTER] KEY TO CONTINUE......"
+                    echo "TASK FAILED, PRESS [ENTER] KEY TO CONTINUE......"
                     read key_enter
                 fi
             else
@@ -99,8 +101,10 @@ case $a in
             echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
             read key_enter
         fi
-        else
-            echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
-            read a
-        fi
+        ;;
+
+    N|n)
+        echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
+        read a
+        ;;
 esac

@@ -1,0 +1,4 @@
+export TASKPATH=""
+export ORCLNAME=""
+export ORCLUSER=""
+export ORCLPWD=""

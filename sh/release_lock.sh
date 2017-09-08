@@ -5,8 +5,8 @@ jobunit=$2
 batchno=$3
 procid=$4
 
-mv $LOGPATH/loglock.lck${procid} \
-   $LOGPATH/loglock.lck \
+mv $LOGPATH/lock.lck${procid} \
+   $LOGPATH/lock.lck \
    2>/dev/null
 
 if [ ! $? -eq 0 ]; then

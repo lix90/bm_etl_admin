@@ -6,6 +6,8 @@ trap "./start_menu.sh " 2 3
 echo "PLEASE INPUT BATCHNO:"
 read batchno
 
+LOGPATH=$TASKPATH/log
+
 logfile=$LOGPATH/$batchno/run.log
 jklogfile=$LOGPATH/joblstrun.log$$
 rm ${jklogfile} 2>/dev/null
