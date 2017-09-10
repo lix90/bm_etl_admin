@@ -1,12 +1,16 @@
 #!/bin/sh
 
-trap "./start_menu.sh " 2 3
-
-##logfile=$LOGPATH/run.log
-echo "PLEASE INPUT BATCHNO:"
-read batchno
+trap "$ETLHOME/sh/start_menu.sh " 2 3
 
 LOGPATH=$TASKPATH/log
+
+##logfile=$LOGPATH/run.log
+echo ""
+echo "请输入需要监控的作业批次号:"
+echo "例如：20150115_091314"
+echo "批次号从$TASKHOME/log获取"
+echo ""
+read batchno
 
 logfile=$LOGPATH/$batchno/run.log
 jklogfile=$LOGPATH/joblstrun.log$$
@@ -22,14 +26,16 @@ if [  -f $logfile ]; then
     while :
     do
         clear
-        rowcnt=`wc -l $logfile|awk '{print $1}'`
+        rowcnt=`wc -l $logfile | awk '{print $1}'`
         tail +$maxrowcnt $logfile>$logtmpfile
         while read line
         do
             if [ -z "$line"  ]; then
                 continue;
             fi
+            # 第3列为作业名
             jobname=`echo $line|awk  -F : '{print $3}'`
+            # 第2列为作业序列名
             joblstname=`echo $line|awk  -F : '{print $2}'`
             if [  "$jobname" = "0" ]; then
                 continue;
@@ -75,23 +81,23 @@ if [  -f $logfile ]; then
         failjobcnt=$failjobcnt
         succjobcnt=$succjobcnt
 
-        echo "RUNNING RESULT：WAITING:${waitjobcnt}，RUNNING:${runjobcnt}，SUCCESS:${succjobcnt}，FAIL:${failjobcnt}"
+        echo "运行结果: 等待中:${waitjobcnt}，运行中:${runjobcnt}，成功:${succjobcnt}，失败:${failjobcnt}"
         if [ $waitjobcnt -eq 0 -a $runjobcnt -eq 0 ]; then
-            echo "RUNNING STATUS：FINISHED."
+            echo "运行结果: 已完成..."
             if [ -f $LOGPATH/running.flag  ]; then
                 rm $LOGPATH/running.flag
             fi
             rm $jklogfile 2>/dev/null
             maxrowcnt=1
         else
-            echo "RUNNING STATUS：RUNNNING..."
+            echo "运行结果: 运行中..."
         fi
         echo "--------------------------------------------------------------------------------------------"
-        echo "PRESS CTRL+C KEY TO STOP..."
+        echo "按CTRL+C键退出..."
         sleep $interval_time
     done
 else
-    echo "input batchno $batchno invalid."
-    echo "PRESS ANY KEY TO CONTINUE..."
+    echo "输入的批次号$batchno有误."
+    echo "请按任意键继续......"
     read a
 fi

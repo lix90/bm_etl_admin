@@ -28,4 +28,3 @@ chmod +x ./sh/*.sh
 
 ### 启动菜单
 ./sh/start_menu.sh $INTERVAL
-

@@ -10,21 +10,21 @@ if [ ! -d $LOGPATH ]; then
 fi
 
 # 启动作业序列
-echo "***************"
-echo "即将启动ETL 任务"
-echo "***************"
+echo "          ***************"
+echo "          即将启动ETL 任务"
+echo "          ***************"
 echo ""
-echo "按[Y|y]键继续, 按[N|n]键取消......"
+echo "     按[Y|y]键继续, 按[N|n]键取消......"
 read a
 
 case $a in
     Y|y)
         echo ""
         echo "请输入作业序列文件和序号, 必须包含序列文件和序号."
-        echo "格式为: <*.job>+<jobid>:..."
-        echo "例如:"
-        echo "script01.job+1"
-        echo "script01.job+1:script02.job+1"
+        echo "  格式为: <*.job>+<jobid>:..."
+        echo "     例如:"
+        echo "     n01.job+1"
+        echo "     n01.job+1:n02.job+1"
         read jobs
         echo "请指定调用模式 (1-断点模式; 0-正常模式)."
         read schmode

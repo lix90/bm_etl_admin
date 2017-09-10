@@ -1,26 +1,33 @@
 #!/bin/sh
 
 # 中断作业调度
+LOGPATH=$TASKPATH/log
 
-echo "INPUT JOBSEQ NAME(DEFAULT:IMMEDIATELY):"
+echo ""
+echo "请输入需要中断的作业序列名"
+echo "按[ENTER]键立即中断后续作业):"
+echo ""
 read jobname
 if [ -z "$jobname" ]; then
-    echo "AFTER CURRENT JOBSEQ FINISHED, SUCCEEDING JOB TO BE CANCELD."
+    echo "当前作业序列完成后后续作业将被取消."
     jobpos=0
 else
-    echo "INPUT JOBSEQ POSITION OF $jobname (DEFAULT:0):"
+    echo "请输入$jobname的中断作业序号"
+    echo "按[ENTER]为作业序号默认为0:"
     read jobpos
     if [ -z "$jobpos" ]; then
         jobpos=0
     fi
-    echo "AFTER STEP $jobpos OF ${jobname} FINISHED, SUCCEEDING JOB TO BE CANCELD."
+    echo "在${jobname}的${jobpos}作业完成后，后续作业将被取消."
 fi
-echo "PRESS ENTER KEY TO CONTINUE......"
+echo "请按[ENTER]键继续......"
 read key_enter
+
+# 将作业序列和作业序号写入中断标识
 if [ "$key_enter" = "" ]; then
     echo "$jobname:$jobpos"\
          >> $LOGPATH/halt.flag
-    echo "SET INTERRUPT FLAG SUCCESSFUL."
-    echo "PRESS ANY KEY TO CONTINUE......"
+    echo "中断作业序列和序号已设定成功."
+    echo "请按[ENTER]键继续......"
     read key_enter
 fi

@@ -1,9 +1,11 @@
 #!/bin/sh
 
-### 重新启动调度
-
-echo "ETL TO BE RESTART"
-echo "PRESS [Y|y] KEY TO CONTINUE, [N|n] KEY TO STOP."
+echo ""
+echo "          ***************"
+echo "          即将重启ETL任务"
+echo "          ***************"
+echo ""
+echo "     按[Y|y]键继续，按[N|n]键终止."
 read a
 
 JOBPATH=$TASKPATH/job
@@ -31,38 +33,38 @@ case $a in
             while :
             do
                 # 输入作业序列名
-                echo "PLEASE INPUT JOB SEQ NAME(INPUT 0 TO END):"
+                echo "请输入作业序列名（按0键终止）:"
                 read jobfname
                 if [ "$jobfname" = "0" ]; then
                     break
                 fi
                 if [ -f $JOBPATH/$jobfname ]; then
                     # 输入作业序列的开始位置
-                    echo "PLEASE INPUT START POSITION OF CURRENT JOB SEQ:"
+                    echo "请输入作业序列编号（按回车键序列号默认为1）:"
                     read jobid
                     # 默认位置为1
                     if [ -z "$jobid" ];  then
                         jobid=1
                     fi
-                    # 写调度文件
+                    # 将序列文件和序列编号写入调度文件，以逗号分隔
                     echo "$jobfname,$jobid" \
                          >>$schedule_file
                 else
-                    echo "ERROR JOB SEQ NAME!"
+                    echo "ERROR: 错误的调度序列文件!"
                 fi
             done
         fi
 
-        ## 读取调度文件，获取重新调度的作业序列信息
+        ## 读取新创建的调度文件，获取重新调度的作业序列信息
         if [ -f $schedule_file ]; then
             # 打印调度文件
-            echo "CURRENT JOB SEQ LIST FOR SCHEDULING:"
+            echo "当前作业序列为:"
             cat $schedule_file
 
-            echo "PRESS [ENTER] KEY TO CONTINUE......"
+            echo "按[ENTER]键继续......"
             read key_enter
 
-            # 读取调度文件
+            # 从调度文件中读取调度作业序列和编号
             if [ "$key_enter" = "" ]; then
                 succjs=""
                 while read line
@@ -79,32 +81,32 @@ case $a in
                     fi
                 done < $schedule_file
 
-                ##--------------------------------------------------
+
                 ## 启动任务, 断点加载任务
-                ##--------------------------------------------------
+                ##===================
                 eval ./start_task.sh $succjs 1
 
                 if [ $? -eq 0 ]; then
-                    echo "TASK SUBMITTED, PRESS [ENTER] KEY TO CONTINUE......"
+                    echo "作业*提交*, 按[ENTER]键继续......"
                     read key_enter
                 else
-                    echo "TASK FAILED, PRESS [ENTER] KEY TO CONTINUE......"
+                    echo "作业*失败*, 按[ENTER]键继续......"
                     read key_enter
                 fi
             else
-                echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
+                echo "作业*取消*, 按[ENTER]键继续......"
                 read key_enter
             fi
             # 清除调度文件
             rm $schedule_file 2>/dev/null
         else
-            echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
+            echo "作业*取消*, 按[ENTER]键继续......"
             read key_enter
         fi
         ;;
 
     N|n)
-        echo "TASK CANCELED, PRESS [ENTER] KEY TO CONTINUE......"
+        echo "作业*取消*, 按[ENTER]键继续......"
         read a
         ;;
 esac
