@@ -1,16 +1,22 @@
 #!/bin/sh
 
-trap "$ETLHOME/sh/start_menu.sh " 2 3
-
+INTERVAL=10
 LOGPATH=$TASKPATH/log
 
-##logfile=$LOGPATH/run.log
+lastest_batchno=`ls -l $LOGPATH | awk '{print $9}' | sort -n | grep '[0-9]_[0-9]' | tail -n 1`
+
 echo ""
 echo "请输入需要监控的作业批次号:"
-echo "例如：20150115_091314"
+echo "最新批次号为：$lastest_batchno"
 echo "批次号从$TASKHOME/log获取"
 echo ""
-read batchno
+read tmpbatchno
+
+if [ -z "$tmpbatchno" ]; then
+    batchno=$lastest_batchno
+else
+    batchno=$tmpbatchno
+fi
 
 logfile=$LOGPATH/$batchno/run.log
 jklogfile=$LOGPATH/joblstrun.log$$
@@ -27,7 +33,7 @@ if [  -f $logfile ]; then
     do
         clear
         rowcnt=`wc -l $logfile | awk '{print $1}'`
-        tail +$maxrowcnt $logfile>$logtmpfile
+        tail -n +$maxrowcnt $logfile>$logtmpfile
         while read line
         do
             if [ -z "$line"  ]; then
@@ -56,6 +62,7 @@ if [  -f $logfile ]; then
                 echo "$joblogrec">>$jklogfile
             fi
         done<$logtmpfile
+
         ###rowcnt=`wc -l $logtmpfile|awk '{print $1}'`
         rm $logtmpfile
         if [ $rowcnt -lt 50 ]; then
@@ -63,19 +70,22 @@ if [  -f $logfile ]; then
         else
             maxrowcnt=`expr $rowcnt - 30`
         fi
-        echo "JOBSEQ          JOB                     STATUS  STARTTIME       ENDTIME         POSITION"
-        echo "--------------------------------------------------------------------------------------------"
-        awk -F : 'BEGIN {OFS="	";} $3=="成功"  {print $1,$2,$3,$4,$5,$6} ' $jklogfile |tail -20
-        awk -F : 'BEGIN {OFS="	";} $3=="用户中断"  {print $1,$2,$3,$4,$5,$6} ' $jklogfile
-        awk -F : 'BEGIN {OFS="	";} $3=="失败" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
-        awk -F : 'BEGIN {OFS="	";} $3=="等待运行" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
-        awk -F : 'BEGIN {OFS="	";} $3=="运行中" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
+        echo ""
+        echo "作业状态:"
+        echo ""
+        echo "作业序列名     作业     状态     开始时间     结束时间     作业序号"
+        echo "------------------------------------------------------------"
+        awk -F : 'BEGIN {OFS=" ";} $3=="成功"  {print $1,$2,$3,$4,$5,$6} ' $jklogfile |tail -20
+        awk -F : 'BEGIN {OFS=" ";} $3=="用户中断"  {print $1,$2,$3,$4,$5,$6} ' $jklogfile
+        awk -F : 'BEGIN {OFS=" ";} $3=="失败" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
+        awk -F : 'BEGIN {OFS=" ";} $3=="等待运行" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
+        awk -F : 'BEGIN {OFS=" ";} $3=="运行中" {print $1,$2,$3,$4,$5,$6} ' $jklogfile
 
         waitjobcnt=`awk -F : 'BEGIN {OFS="	";} $3=="等待运行" {print $1,$2,$3,$4,$5,$6} ' $jklogfile|wc -l`
         runjobcnt=`awk -F : 'BEGIN {OFS="	";} $3=="运行中" {print $1,$2,$3,$4,$5,$6} ' $jklogfile|wc -l`
         failjobcnt=`awk -F : 'BEGIN {OFS="	";} $3=="失败" {print $1,$2,$3,$4,$5,$6} ' $jklogfile|wc -l`
         succjobcnt=`awk -F : 'BEGIN {OFS="	";} $3=="成功" || $3=="用户中断" {print $1,$2,$3,$4,$5,$6} ' $jklogfile|wc -l`
-        echo "--------------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------"
         waitjobcnt=$waitjobcnt
         runjobcnt=$runjobcnt
         failjobcnt=$failjobcnt
@@ -92,9 +102,14 @@ if [  -f $logfile ]; then
         else
             echo "运行结果: 运行中..."
         fi
-        echo "--------------------------------------------------------------------------------------------"
-        echo "按CTRL+C键退出..."
-        sleep $interval_time
+        echo "------------------------------------------------------------"
+        echo "按0键退出..."
+        read k
+        if [ $k = "0" ]; then
+            exit
+        else
+            sleep $INTERVAL
+        fi
     done
 else
     echo "输入的批次号$batchno有误."

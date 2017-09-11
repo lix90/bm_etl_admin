@@ -5,9 +5,9 @@ inputparam=${2-"parameters"}
 
 helloworld=`cat $inputfile`
 
-echo "TESTING RESULTS:"
-echo "$helloworld"
-echo ""
-echo "BELOW IS PARAMETERS"
-echo ""
-echo "$inputparam"
+cat <<EOF>$TASKPATH/log/test_is_success
+TESTING RESULTS:
+$helloworld
+BELOW IS PARAMETERS
+$inputparam
+EOF

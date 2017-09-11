@@ -1,18 +1,20 @@
 #!/bin/sh
 
-curjob=$1
+CURJOB=$1
 jobunit=$2
-batchno=$3
-procid=$4
+BATCHNO=$3
+PROCID=$4
 
-mv $LOGPATH/lock.lck${procid} \
+LOGPATH=$TASKPATH/log
+
+mv $LOGPATH/lock.lck${PROCID} \
    $LOGPATH/lock.lck \
    2>/dev/null
 
 if [ ! $? -eq 0 ]; then
     lsdate22=`date +%Y%m%d_%H%M%S`
-    echo "$lsdate22:作业序列${curjob}－作业$jobunit释放写日志锁超时，调度程序出现严重错误."\
-         >>$LOGPATH/$batchno/joblst.run
+    echo "$lsdate22:作业序列${CURJOB}－作业$jobunit释放写日志锁超时，调度程序出现严重错误."\
+         >>$LOGPATH/$BATCHNO/joblst.run
     exit 4001
 else
     break

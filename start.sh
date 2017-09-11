@@ -17,14 +17,8 @@
 #     echo "ERROR: TASKPATH IS NOT LEGAL."
 #     exit
 # fi
-
-# export TASKPATH
-
-### 初始变量
-INTERVAL=${1:-10}
-
 ### chmod
-chmod +x ./sh/*.sh
+chmod +x $ETLHOME/sh/*.sh
 
 ### 启动菜单
-./sh/start_menu.sh $INTERVAL
+$ETLHOME/sh/start_menu.sh

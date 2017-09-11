@@ -35,7 +35,7 @@ batchno=$3
 
 ## 后台运行作业
 eval nohup $ETLHOME/sh/run_job.sh \
-     $jobname $batchno $jobid \
+     $jobname $jobid $batchno \
      >> $LOGPATH/$batchno/joblst.run &
 # $ETLHOME/sh/run_job.sh \
     #     $jobname $batchno $jobid \

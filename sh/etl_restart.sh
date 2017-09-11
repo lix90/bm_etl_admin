@@ -1,5 +1,8 @@
 #!/bin/sh
 
+## 当用户终止程序，重新启动start_menu
+trap "$ETLHOME/sh/start_menu.sh " INT TERM EXIT
+
 echo ""
 echo "          ***************"
 echo "          即将重启ETL任务"
@@ -9,6 +12,7 @@ echo "     按[Y|y]键继续，按[N|n]键终止."
 read a
 
 JOBPATH=$TASKPATH/job
+LOGPATH=$TASKPATH/log
 
 case $a in
     Y|y)
@@ -21,7 +25,7 @@ case $a in
 
         ## 断点执行作业序列
         # 提示是否从上次失败的作业序列位置开始断点加载
-        echo "RESTART FROM LAST FAILED TASK OF CURRENT BATCHNO(Y/N):\c"
+        echo "是否从最近一次失败作业的批次号重启[Y|N]:"
         read ans
 
         ## 将重启调度文件名和作业序号写入调度文件
@@ -84,7 +88,7 @@ case $a in
 
                 ## 启动任务, 断点加载任务
                 ##===================
-                eval ./start_task.sh $succjs 1
+                eval $ETLHOME/sh/start_task.sh $succjs 1
 
                 if [ $? -eq 0 ]; then
                     echo "作业*提交*, 按[ENTER]键继续......"

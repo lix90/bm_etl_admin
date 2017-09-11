@@ -4,8 +4,11 @@
 LOGPATH=$TASKPATH/log
 
 echo ""
-echo "请输入需要中断的作业序列名"
-echo "按[ENTER]键立即中断后续作业):"
+echo "          ***************"
+echo "          即将中断ETL作业"
+echo "          ***************"
+echo ""
+echo "请输入需要中断的作业序列名, 按[ENTER]键立即中断后续作业:"
 echo ""
 read jobname
 if [ -z "$jobname" ]; then
@@ -27,7 +30,9 @@ read key_enter
 if [ "$key_enter" = "" ]; then
     echo "$jobname:$jobpos"\
          >> $LOGPATH/halt.flag
-    echo "中断作业序列和序号已设定成功."
-    echo "请按[ENTER]键继续......"
+    echo "中断作业序列和序号已设定成功, 按[ENTER]键继续......"
     read key_enter
+    exit
 fi
+
+$ETLHOME/sh/start_menu.sh

@@ -3,6 +3,9 @@
 # $1-js_46.def+1, 作业名称加序号, 作业为js_46.def, 序号为1
 # $2-0, 调度模式, 0为正常模式
 
+## 当用户终止程序，重新启动start_menu
+trap "$ETLHOME/sh/start_menu.sh " 2 3
+
 LOGPATH=$TASKPATH/log
 if [ ! -d $LOGPATH ]; then
     echo "日志路径不存在, 程序将自动创建."
@@ -35,12 +38,11 @@ case $a in
             echo "任务 *提交*!"
             echo "按 [ENTER] 键继续......"
             read key_enter
+            exit
         else
             echo ""
             echo "任务 *失败*!"
             echo ""
-            # 如果失败, 则删除运行日志
-            rm $TASKPATH/log/running.flag
             exit
         fi
         ;;

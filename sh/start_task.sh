@@ -41,6 +41,7 @@ fi
 LOGPATH=$TASKPATH/log
 JOBPATH=$TASKPATH/job
 SQLPATH=$TASKPATH/sql
+JOBRELF=$JOBPATH/js.rel
 
 # 加锁
 echo "lock" > $LOGPATH/lock.lck
@@ -68,7 +69,7 @@ else
 fi
 
 # 清除该批次号关系文件
-# eval rm -r $LOGPATH/${batchno}/relation* 2>/dev/null
+eval rm -r $LOGPATH/${batchno}/relation* 2>/dev/null
 
 # 获取当前系统日期
 NOW=`date +%Y%m%d_%H%M%S`
@@ -96,11 +97,12 @@ fi
 # 调度文件是什么?
 # 批次号路径下生成调度文件
 # schedulefile=`awk -F : '{print $1 "+" $2}' $jobrelation | awk -F + -v joblist=$1 '{x=NF;while (x>0) {if ($x == joblist) {print $1} else {print ""};x-=1;}}'`
-# echo $schedulefile
+schedulefile=`awk -F : '{print $1}' $JOBRELF`
+echo $schedulefile
 
-# if [ ! -z "$schedulefile" -a -d $LOGPATH/$batchno/$schedulefile ]; then
-#     rm  $LOGPATH/$batchno/$schedulefile
-# fi
+if [ ! -z "$schedulefile" -a -d $LOGPATH/$batchno/$schedulefile ]; then
+    rm  $LOGPATH/$batchno/$schedulefile
+fi
 
 # 创建当前批次日志目录
 if [ ! -d $LOGPATH/$batchno ]; then
@@ -142,6 +144,10 @@ do
     # 作业ID
     jobid=`echo $execitem | awk -F '+' '{print $2}'`
 
+    echo "$execitem"
+    echo "$jobname"
+    echo "$jobid"
+    
     ## 如果遇到空的作业序列，当前调度结束
     if [ -z "$jobname" ]; then
         break;
