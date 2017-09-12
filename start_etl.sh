@@ -19,7 +19,7 @@ echo ""
 # read ans
 
 # if [ $ans = "Y" -o $ans = "y" -o $ans = "" ]; then
-. /home/`whoami`/.envset
+. $HOME/.envset
 # eval $ETLHOME/sh/load_env.sh
 # fi
 # fi
