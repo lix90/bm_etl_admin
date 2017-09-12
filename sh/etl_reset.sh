@@ -22,4 +22,4 @@ if [ "$key_enter" = "" ]; then
     read key_enter
 fi
 
-$ETLHOME/sh/start_menu.sh
+$ETLHOME/start_etl.sh

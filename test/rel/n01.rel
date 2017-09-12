@@ -1,4 +1,0 @@
-1:n01.job+n02.job:n03.job|n04.job
-2:n03.job+n04.job:n05.job
-3:n05.job:n06.job|n07.job|n08.job
-4:n06.job+n07.job+n08.job:n09.job

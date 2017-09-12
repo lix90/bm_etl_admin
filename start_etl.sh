@@ -11,9 +11,19 @@ clear
 
 echo ""
 echo "          ******************************"
-echo "          安正ETL控制台调度工具 V3.0alpha"
+echo "               欢迎使用安正ETL 调度平台"
 echo "          ******************************"
 echo ""
+# echo "          是否需要加载环境变量？[Y|N]"
+# echo ""
+# read ans
+
+# if [ $ans = "Y" -o $ans = "y" -o $ans = "" ]; then
+. /home/`whoami`/.envset
+# eval $ETLHOME/sh/load_env.sh
+# fi
+# fi
+
 echo "                    1. 启动"
 echo "                    2. 重启"
 echo "                    3. 监控"
@@ -40,4 +50,3 @@ case $ans in
        read a
        ;;
 esac
-

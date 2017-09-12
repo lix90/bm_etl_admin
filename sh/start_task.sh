@@ -12,30 +12,12 @@
 
 # 作业序列名称
 # 作业序列名=<作业文件名>+<作业序号>:<作业文件名>+<作业序号>:...
-jobs=$1
+JOBPLUSID=$1
+# echo "$JOBPLUSID"
 # 调度模式
-schmode=$2
+SCHMODE=$2
 # 装载环境变量
-setenv=${3:-1}
-
-# 检查作业参数
-if [ -z "$jobs" ]; then
-    echo "ERROR:未指定待执行作业序列及JOB顺序号（参数1)."
-    exit 3
-fi
-
-# 检查批次参数
-if [ "$schmode" = "0" -o "$schmode" = "1" ]; then
-    printf "当前调度主服务器：$(hostname)\n"
-else
-    printf "ERROR:参数2取值$schmode无效，合法参数为1-断点加载 0-正常调度.\n"
-    exit 2
-fi
-
-# 装载环境变量
-# if [ "$setenv" = "1" ]; then 
-#     source "$TASKPATH/.envset"
-# fi
+SETENV=${3:-1}
 
 # 任务文件
 LOGPATH=$TASKPATH/log
@@ -43,20 +25,38 @@ JOBPATH=$TASKPATH/job
 SQLPATH=$TASKPATH/sql
 JOBRELF=$JOBPATH/js.rel
 
+# 检查作业参数
+if [ -z "$JOBPLUSID" ]; then
+    echo "ERROR:未指定待执行作业序列及作业序号（参数1)."
+    exit 3
+fi
+
+# 检查批次参数
+if [ "$SCHMODE" = "0" -o "$SCHMODE" = "1" ]; then
+    echo "当前调度主服务器：$(hostname)"
+else
+    echo "ERROR:参数2取值$SCHMODE无效，合法参数为1-断点加载 0-正常调度."
+    exit 2
+fi
+
+# 装载环境变量
+# . $ETLHOME/sh/load_env.sh
+
 # 加锁
 echo "lock" > $LOGPATH/lock.lck
 
-### --------------------------------------------------
+###>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ### 调度开始
-### --------------------------------------------------
+###>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 # 断点加载模式
-if [ "$schmode" = "1" ]; then
+if [ "$SCHMODE" = "1" ]; then
 
     # 读取上次正常加载的批次号
     # 批次号命名
     # 批次号在start_task.sh写入
     if [ -f $LOGPATH/batchno.flag ]; then
-        batchno=`awk '{print $1}' $LOGPATH/batchno.flag`
+        BATCHNO=`awk '{print $1}' $LOGPATH/batchno.flag`
     else
         # 如果找不到上次加载的批次号则无法启动断点加载
         # 断点文件命名
@@ -65,11 +65,11 @@ if [ "$schmode" = "1" ]; then
     fi
 else
     # 新建批次号
-    batchno=`date +%Y%m%d_%H%M%S`
+    BATCHNO=`date +%Y%m%d_%H%M%S`
 fi
 
 # 清除该批次号关系文件
-eval rm -r $LOGPATH/${batchno}/relation* 2>/dev/null
+# eval rm -r $LOGPATH/$BATCHNO/relation* 2>/dev/null
 
 # 获取当前系统日期
 NOW=`date +%Y%m%d_%H%M%S`
@@ -90,73 +90,65 @@ if [ -f $LOGPATH/halt.flag ]; then
     rm $LOGPATH/halt.flag
 fi
 
-# 清除调度控制文件
-# ----
-# 问题
-# ----
-# 调度文件是什么?
-# 批次号路径下生成调度文件
-# schedulefile=`awk -F : '{print $1 "+" $2}' $jobrelation | awk -F + -v joblist=$1 '{x=NF;while (x>0) {if ($x == joblist) {print $1} else {print ""};x-=1;}}'`
-schedulefile=`awk -F : '{print $1}' $JOBRELF`
-echo $schedulefile
+##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+## 此处代码的目的是清除作为调度锁的文件目录
+# schedulefile=`cat "$JOBRELF" | grep "$JOBNAME" | tail -n 1 | awk -F ':' '{print $1}'`
+# echo $schedulefile
+# if [ ! -z "$schedulefile" -a -d $LOGPATH/$BATCHNO/$schedulefile ]; then
+# rm  $LOGPATH/$BATCHNO/$schedulefile
+# fi
+##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-if [ ! -z "$schedulefile" -a -d $LOGPATH/$batchno/$schedulefile ]; then
-    rm  $LOGPATH/$batchno/$schedulefile
-fi
-
-# 创建当前批次日志目录
-if [ ! -d $LOGPATH/$batchno ]; then
-    mkdir $LOGPATH/$batchno
+## 创建当前批次日志目录
+if [ ! -d $LOGPATH/$BATCHNO ]; then
+    mkdir $LOGPATH/$BATCHNO
     if [ ! $? -eq 0 ]; then
-        echo "创建目录$LOGPATH/$batchno失败，调度启动失败." \
+        echo "创建目录$LOGPATH/$BATCHNO失败，调度启动失败." \
              >$LOGPATH/err.log
         exit 4
     fi
 fi
 
-# 根据加载类型初始化模块调度日志文件
-if [ "$schmode" = "0" ]; then
+## 根据加载类型初始化模块调度日志文件
+if [ "$SCHMODE" = "0" ]; then
     echo "******正常加载起始时间:$NOW******" \
-         >>$LOGPATH/${batchno}/schedule.log
+         >>$LOGPATH/$BATCHNO/schedule.log
 else
     echo "******断点加载起始时间:$NOW******" \
-         >>$LOGPATH/${batchno}/schedule.log
+         >>$LOGPATH/$BATCHNO/schedule.log
 fi
 
 
-### --------------------------------------------------
-### 提交主调度程序
-### --------------------------------------------------
+###>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+## 提交主调度程序
 ## 记录当前批次号,供断点加载模式使用
-echo $batchno > $LOGPATH/batchno.flag
+echo $BATCHNO > $LOGPATH/batchno.flag
+
 ## 重新开启（x=1）作业序列
 # <作业文件名>+<作业序号>:<作业文件名>+<作业序号>
 # 计数器
 x=1
+
 ## 调度待执行作业序列
 while :
 do
     ## 读取作业序列 
     # 执行项目 = 作业列表名+作业ID
-    execitem=`echo $jobs | awk -F ':' -v itemid=$x '{print $itemid}'`
+    execitem=`echo "$JOBPLUSID" | awk -F : -v i=$x '{print $i}'` 
     # 作业列表名
-    jobname=`echo $execitem | awk -F '+' '{print $1}'`
+    jobname=`echo "$execitem" | awk -F '+' '{print $1}'` 
     # 作业ID
-    jobid=`echo $execitem | awk -F '+' '{print $2}'`
+    jobid=`echo "$execitem" | awk -F '+' '{print $2}'`
 
-    echo "$execitem"
-    echo "$jobname"
-    echo "$jobid"
-    
     ## 如果遇到空的作业序列，当前调度结束
-    if [ -z "$jobname" ]; then
-        break;
+    if [ -z "$jobname" -o "$jobname" == "" ]; then 
+        break 
     fi
 
     ## 必须指定待执行作业序列的执行JOB顺序号
     if [ -z "$jobid" ]; then
         echo "未给$jobname指定执行JOB顺序号." \
-             >>$LOGPATH/${batchno}/schedule.log 
+             >>$LOGPATH/$BATCHNO/schedule.log 
         exit 5
     fi
     
@@ -164,17 +156,17 @@ do
     NOW=`date +%Y%m%d_%H%M%S`
 
     # 提交job
-    $ETLHOME/sh/submit_job.sh $jobname $jobid $batchno
+    $ETLHOME/sh/submit_job.sh $jobname $jobid $BATCHNO
 
     if [ $? -eq 0 ]; then
-        echo "$batchno:$jobname:$jobid:$NOW:调度成功" \
-             >>$LOGPATH/${batchno}/schedule.log
+        echo "$BATCHNO:$jobname:$jobid:$NOW:调度成功" \
+             >>$LOGPATH/$BATCHNO/schedule.log
     else
-        echo "$batchno:$jobname:$jobid:$NOW:调度失败" \
-             >>$LOGPATH/${batchno}/schedule.log
+        echo "$BATCHNO:$jobname:$jobid:$NOW:调度失败" \
+             >>$LOGPATH/$BATCHNO/schedule.log
         exit 6
     fi
 
-    x=`expr $x + 1`
+    x=`expr $x + 1` 
     
 done

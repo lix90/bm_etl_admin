@@ -1,5 +1,8 @@
 #!/bin/sh
 
+## 当用户终止程序，重新启动start_menu
+trap "$ETLHOME/start_etl.sh " 2 3
+
 # 中断作业调度
 LOGPATH=$TASKPATH/log
 
@@ -34,5 +37,3 @@ if [ "$key_enter" = "" ]; then
     read key_enter
     exit
 fi
-
-$ETLHOME/sh/start_menu.sh

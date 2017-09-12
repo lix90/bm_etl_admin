@@ -23,7 +23,8 @@ jklogfile=$LOGPATH/joblstrun.log$$
 rm ${jklogfile} 2>/dev/null
 touch $jklogfile
 
-if [  -f $logfile ]; then
+if [ -f $logfile ]; then
+
     clear
     rowcnt=0;
     maxrowcnt=1;

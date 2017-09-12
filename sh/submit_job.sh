@@ -53,5 +53,3 @@ else
          >>$LOGPATH/err.log
     exit 2
 fi
-
-

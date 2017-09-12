@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## 当用户终止程序，重新启动start_menu
-trap "$ETLHOME/sh/start_menu.sh " INT TERM EXIT
+trap "$ETLHOME/start_etl.sh " 2 3
 
 echo ""
 echo "          ***************"
@@ -17,10 +17,10 @@ LOGPATH=$TASKPATH/log
 case $a in
     Y|y)
         # 调度清单, 如果存在, 清除原来的调度清单文件
-        schedule_file=$JOBPATH/schedule$$
+        schedulefile=$JOBPATH/schedule$$
 
-        if [ -f $schedule_file ]; then
-            rm $schedule_file
+        if [ -f $schedulefile ]; then
+            rm $schedulefile
         fi
 
         ## 断点执行作业序列
@@ -32,8 +32,12 @@ case $a in
         if [ -z "$ans" -o "$ans" = "Y" -o "$ans" = "y" ]; then
             # 写重启标识到调度文件
             cat $LOGPATH/restart.flag \
-                >$schedule_file
+                >$schedulefile
         elif [ "$ans" = "N" -o "$ans" = "n"]; then
+
+            ##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            ## 生成调度文件
+            ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             while :
             do
                 # 输入作业序列名
@@ -52,7 +56,7 @@ case $a in
                     fi
                     # 将序列文件和序列编号写入调度文件，以逗号分隔
                     echo "$jobfname,$jobid" \
-                         >>$schedule_file
+                         >>$schedulefile
                 else
                     echo "ERROR: 错误的调度序列文件!"
                 fi
@@ -60,10 +64,11 @@ case $a in
         fi
 
         ## 读取新创建的调度文件，获取重新调度的作业序列信息
-        if [ -f $schedule_file ]; then
+        if [ -f $schedulefile ]; then
+
             # 打印调度文件
             echo "当前作业序列为:"
-            cat $schedule_file
+            cat $schedulefile
 
             echo "按[ENTER]键继续......"
             read key_enter
@@ -73,21 +78,21 @@ case $a in
                 succjs=""
                 while read line
                 do
-                    jobfname=`echo $line | awk -F ',' '{print $1}'`
+                    jobname=`echo $line | awk -F ',' '{print $1}'`
                     jobid=`echo $line | awk -F ',' '{print $2}'`
-                    if [ -z "$jobfname" ]; then
+                    if [ -z "$jobname" ]; then
                         continue
                     fi
                     if [ -z "$succjs" ]; then
-                        succjs="${jobfname}+${jobid}"
+                        succjs="${jobname}+${jobid}"
                     else
-                        succjs="${succjs}:${jobfname}+${jobid}"
+                        succjs="${succjs}:${jobname}+${jobid}"
                     fi
-                done < $schedule_file
+                done < $schedulefile
 
-
+                ##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 ## 启动任务, 断点加载任务
-                ##===================
+                ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                 eval $ETLHOME/sh/start_task.sh $succjs 1
 
                 if [ $? -eq 0 ]; then
@@ -102,7 +107,7 @@ case $a in
                 read key_enter
             fi
             # 清除调度文件
-            rm $schedule_file 2>/dev/null
+            rm $schedulefile 2>/dev/null
         else
             echo "作业*取消*, 按[ENTER]键继续......"
             read key_enter
