@@ -6,16 +6,22 @@ LOGPATH=$TASKPATH/log
 lastest_batchno=`ls -l $LOGPATH | awk '{print $9}' | sort -n | grep '[0-9]_[0-9]' | tail -n 1`
 
 echo ""
-echo "请输入需要监控的作业批次号:"
-echo "最新批次号为：$lastest_batchno"
-echo "批次号从$TASKHOME/log获取"
 echo ""
-read tmpbatchno
-
-if [ -z "$tmpbatchno" ]; then
+echo "按[ENTER]键监控最近的批次号作业 $lastest_batchno"
+echo ""
+echo "按0键手动指定批次号"
+read ans
+if [ "$ans" == "0" ]; then
+    # 获取全部批次号
+    batchnoall=`ls -l $LOGPATH|awk '{print $9}'|sort -n|grep '[0-9]_[0-9]'`
+    echo "可用批次号如下："
+    echo "     $batchnoall"
+    echo ""
+    echo "请手动输入批次号："
+    echo ""
+    read batchno
+elif [ "$ans" == "" ]; then
     batchno=$lastest_batchno
-else
-    batchno=$tmpbatchno
 fi
 
 logfile=$LOGPATH/$batchno/run.log
@@ -44,7 +50,7 @@ if [ -f $logfile ]; then
             jobname=`echo $line|awk  -F : '{print $3}'`
             # 第2列为作业序列名
             joblstname=`echo $line|awk  -F : '{print $2}'`
-            if [  "$jobname" = "0" ]; then
+            if [ "$jobname"x = "0"x ]; then
                 continue;
             fi
             if [ -f $jklogfile ]; then
@@ -54,7 +60,7 @@ if [ -f $logfile ]; then
             fi
             jobstatus=`awk -F : -v jobname=$jobname 'BEGIN {OFS=":";} $3 == jobname {jobstatus=$6;starttime=$4;endtime=$5;jobid=$7;next;} END {print jobstatus,starttime,endtime,jobid;}' $logfile`
             joblogrec="$joblstname:$jobname:$jobstatus"
-            if [ -z "$tjflag"  ]; then
+            if [ -z "$tjflag" ]; then
                 echo "$joblogrec">>$jklogfile
             elif [ ! $maxrowcnt -eq 1 ]; then
                 awk -F : -v jobname=$jobname '$2 != jobname {print $0}' $jklogfile > ${jklogfile}_$$
@@ -106,9 +112,10 @@ if [ -f $logfile ]; then
         echo "------------------------------------------------------------"
         echo "按0键退出..."
         read k
-        if [ $k = "0" ]; then
+        if [ "$k"x = "0"x ]; then
             exit
         else
+            echo "$INTERVAL秒等待......"
             sleep $INTERVAL
         fi
     done
@@ -116,4 +123,5 @@ else
     echo "输入的批次号$batchno有误."
     echo "请按任意键继续......"
     read a
+    $ETLHOME/start_etl.sh
 fi

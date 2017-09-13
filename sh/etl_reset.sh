@@ -1,14 +1,14 @@
 #!/bin/sh
 
+clear
 LOGPATH=$TASKPATH/log
 
 echo ""
-echo "          *****************"
+echo "          ******************"
 echo "          开始重置ETL调度状态"
-echo "          *****************"
+echo "          ******************"
 echo ""
 echo "请确保当前任务全部完成, 按[ENTER]键继续......"
-echo ""
 read key_enter
 
 if [ "$key_enter" = "" ]; then 

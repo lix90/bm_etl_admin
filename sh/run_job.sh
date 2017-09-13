@@ -26,7 +26,7 @@ LOGPATH=$TASKPATH/log # 日志文件路径
 RUNLOG=$LOGPATH/$BATCHNO/run.log # 运行日志
 JOBLSTLOG=$LOGPATH/$BATCHNO/joblst.run # 作业序列日志
 SCHLOG=$LOGPATH/$BATCHNO/schedule.log # 调度日志
-JOBREFL=$TASKPATH/job/js.rel # 作业关系文件
+JOBRELF=$TASKPATH/job/js.rel # 作业关系文件
 SCRIPTPATH=$TASKPATH/script # 脚本文件路径
 JOBPATH=$TASKPATH/job # 作业文件路径
 JOBFILE=$JOBPATH/$JOBNAME # 当前作业序列文件
@@ -316,7 +316,7 @@ do
     # 如果状态未成功，那么写入重启标识
     # 之后，运行etl_restart.sh进行重启
     if [ ! "$runstatus" = "0"  ]; then
-        echo "${CURJOB},$JOBID" \
+        echo "${CURJOB}+$JOBID" \
              >$LOGPATH/restart.flag
         break
     else
@@ -336,9 +336,9 @@ do
             # 获取下一步作业文件名
             jobunit=`awk -F : -v i=$JOBID '$1==i {print $2}' $JOBFILE`
             # 如果作业名为空，位置则为1
-            haltpos1=`awk -F : '$1 == "" {print 1}' $LOGPATH/halt.flag`
+            haltpos1=`awk -F '+' '$1 == "" {print 1}' $LOGPATH/halt.flag`
             # 如果中断作业名为当前已运行作业，中断位置为中断标识文件第2列指定序号
-            haltpos2=`awk -F : -v i=$CURJOB '$1 == i {print $2}' $LOGPATH/halt.flag`
+            haltpos2=`awk -F '+' -v i=$CURJOB '$1 == i {print $2}' $LOGPATH/halt.flag`
             
             if [ ! -z "$haltpos1" -a ! -z "$haltpos2" -a $JOBID -gt $haltpos2 ]; then
                 runstatus=$JOBID
@@ -394,11 +394,13 @@ job_succ=""
 # fi
 
 ## 获取前续作业序列和后续作业序列（李想，2017-09-12 09:34:39）
-job_pre=`awk -f : '{print $2}' "$JOBRELF"|grep "$JOBNAME"`
-job_succ=`cat "$JOBRELF"|grep "$JOBNAME"|awk -f ':' 'print $3'|tail -n 1`
+echo "get job_pre & job_succ"
+echo "jobrelation file is $JOBRELF"
+job_pre=`awk -F : '{print $2}' $JOBRELF|grep $JOBNAME`
+job_succ=`cat $JOBRELF|grep $JOBNAME|awk -F ':' '{print $3}'|tail -n 1`
 
-echo $job_pre
-echo $job_secc
+echo "this is job_pre $job_pre"
+echo "this is job_secc $job_secc"
 
 ## 判断是否存在后续作业
 if [ ! -z "$job_succ" ]; then
@@ -409,7 +411,7 @@ if [ ! -z "$job_succ" ]; then
     ## 循环判断前续作业是否成功完成
     while :
     do
-        job_pre_item=`print $job_pre | awk -F + -v i=$itemid '{print $i}'`
+        job_pre_item=`echo $job_pre | awk -F + -v i=$itemid '{print $i}'`
         if [ -z "$job_pre_item" ]; then
             break;
         fi
@@ -440,7 +442,7 @@ if [ ! -z "$job_succ" ]; then
                 while :
                 do
                     job_succ_item=""
-                    job_succ_item=`print $job_succ | awk -F '|' -v i=$itemid '{print $i}'`
+                    job_succ_item=`echo $job_succ | awk -F '|' -v i=$itemid '{print $i}'`
                     if [ -z "$job_succ_item" ]; then
                         break;
                     fi
@@ -457,29 +459,29 @@ if [ ! -z "$job_succ" ]; then
                         >>$JOBLSTLOG
 
                     if [ $? -eq 0 ]; then
-                        print "$BATCHNO:$job_succ_item:$lsdate:调度成功" \
-                              >>$SCHLOG
+                        echo "$BATCHNO:$job_succ_item:$lsdate:调度成功" \
+                             >>$SCHLOG
                     else
-                        print "$BATCHNO:$job_succ_item:$lsdate:调度失败" \
-                              >>$SCHLOG
+                        echo "$BATCHNO:$job_succ_item:$lsdate:调度失败" \
+                             >>$SCHLOG
                     fi
                     itemid=`expr $itemid + 1`
                 done
             else
-                print "$BATCHNO:$CURJOB:$lsdate:后续作业序列已被调度,忽略后续调度" \
-                      >>$SCHLOG
+                echo "$BATCHNO:$CURJOB:$lsdate:后续作业序列已被调度,忽略后续调度" \
+                     >>$SCHLOG
             fi
         else
             ## 创建文件夹可作业调度锁
-            print "$BATCHNO:$CURJOB:$lsdate:后续作业序列已被其他作业调度,后续调度取消" \
-                  >>$SCHLOG
+            echo "$BATCHNO:$CURJOB:$lsdate:后续作业序列已被其他作业调度,后续调度取消" \
+                 >>$SCHLOG
         fi
     else
-        print "$BATCHNO:$CURJOB:$lsdate:后续作业序列调度条件不满足，后续调度不能执行" \
-              >>$SCHLOG
+        echo "$BATCHNO:$CURJOB:$lsdate:后续作业序列调度条件不满足，后续调度不能执行" \
+             >>$SCHLOG
     fi
 else 
-    print "$BATCHNO:$CURJOB:$lsdate:无后续作业序列" >>$SCHLOG
+    echo "$BATCHNO:$CURJOB:$lsdate:无后续作业序列" >>$SCHLOG
     if [ -f $LOGPATH/running.flag ]; then
         rm $LOGPATH/running.flag 
     fi

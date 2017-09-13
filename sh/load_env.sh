@@ -63,4 +63,4 @@ do
         echo "ERROR: 导入密文失败，调度终止.">>$LOGPATH/run.err 
         exit 1010  
     fi
-done<cat $cryptstr
+done<$cryptstr
